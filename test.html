@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+    <script src="http://d3js.org/d3.v3.min.js">  </script>
+  </head>
+  <body>
+    <div>
+    </div>
+    <script>
+        var svg=d3.select("div")
+                  .append("svg")
+                  .attr("width",500)
+                  .attr("height",500);
+
+        var rect=svg.append("g").attr("transform","translate(50,50)")
+                    .append("rect")
+                    .attr("width",100)
+                    .attr("height",100)
+                    .attr("x",100);
+
+
+    </script>
+    hi
+  </body>
+</html>
