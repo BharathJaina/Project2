@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 20px sans-serif;
+}
+
+.arc path {
+  stroke: #fff;
+}
+
+</style>
+<body>
+  <h2 style="text-align:center;">7 North-East States Population Distribution</h2>
+<script src="./d3.v3.min.js"></script>
+<script>
+
+var width = 900,
+    height = 550,
+    radius = (height-100) / 2;
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5", "#8a89a6"]);
+
+var arc = d3.svg.arc()
+    .outerRadius(radius - 10)
+    .innerRadius(0);
+
+var pie = d3.layout.pie()
+    .sort(null)
+    .value(function(d) { return d["Value"]; });
+
+var Literate=[];
+    Literate[0]={};
+    Literate[0]["label"]="Literate Male Population";
+    Literate[0]["Value"]=0;
+    Literate[1]={};
+    Literate[1]["label"]="Literate Female Population";
+    Literate[1]["Value"]=0;
+
+var Illiterate=[];
+    Illiterate[0]={};
+    Illiterate[0]["label"]="Illiterate Male Population";
+    Illiterate[0]["Value"]=0;
+    Illiterate[1]={};
+    Illiterate[1]["label"]="Illiterate Female Population";
+    Illiterate[1]["Value"]=0;
+
+
+var svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("display","block")
+            .style("margin","auto")
+            .append("g")
+            .attr("transform", "translate(" + width / 4 + "," + (height) / 2 + ")");
+
+function tweenPie(finish) {
+  var start = {
+          startAngle: 0,
+          endAngle: 0
+      };
+  var i = d3.interpolate(start, finish);
+  return function(d) { return arc(i(d)); };
+}
+
+
+
+d3.json("object.json", function(error, data) {
+
+  data.forEach(function(d) {
+
+      if( d.stateName=="ARUNACHAL PRADESH"  ||
+          d.stateName=="NAGALAND"           ||
+          d.stateName=="MANIPUR"            ||
+          d.stateName=="MIZORAM"            ||
+          d.stateName=="TRIPURA"            ||
+          d.stateName=="MEGHALAYA"          ||
+          d.stateName=="ASSAM")
+      {
+          Literate  [0]["Value"]  = Literate[0]["Value"] +  +d.literateMale;
+          Literate  [1]["Value"]  = Literate[1]["Value"] +  +d.literateFemale;
+
+          Illiterate[0]["Value"]  = Illiterate[0]["Value"] +  +d.illiterateMale;
+          Illiterate[1]["Value"]  = Illiterate[1]["Value"] +  +d.illiterateFemale;
+
+      }
+    
+    
+  });
+
+  var total = d3.sum(Literate,function(d){return d["Value"]})
+    
+    Literate[0]["Value"]  = ( Literate[0]["Value"]  * 100 / total).toFixed(2);
+    Literate[1]["Value"]  = ( Literate[1]["Value"]  * 100 / total).toFixed(2);
+
+    total = d3.sum(Illiterate,function(d){return d["Value"]});
+    Illiterate[0]["Value"]  = ( Illiterate[0]["Value"]  * 100 / total).toFixed(2);
+    Illiterate[1]["Value"]  = ( Illiterate[1]["Value"]  * 100 / total).toFixed(2);
+
+
+  var g = svg .selectAll(".arc")
+              .data(pie(Literate))
+              .enter()
+              .append("g")
+              .attr("class", "arc");
+
+
+
+      g .append("path")
+        .attr("d", arc)
+        .style("fill", function(d) { return color(d.data.label); })
+        .style("stroke-width","2px")
+        .transition()
+        .duration(800)
+        .attrTween('d', tweenPie)
+        .each("end",function(){});
+
+      g .append("text")
+        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", ".35em")
+        .style("text-anchor", "middle")
+        .style("opacity","0")
+        .text(function(d) { return d.data["label"]; })
+        .append("tspan")
+        .attr("x",0)
+        .attr("dy",20)
+        .text(function(d) { return d.data["Value"]+"%"; })
+
+      g .select("text")
+        .transition()
+        .delay(500)
+        .duration(1000)
+        .style("opacity","1")
+
+  
+
+      //---------------------------------------Part 2---------------------------//
+
+
+    var svg2  = d3  .select("svg")
+                    .append("g")
+                    .attr("transform", "translate(" + (width/2 + width / 4) + "," + (height) / 2 + ")");
+
+    var g    = svg2 .selectAll(".arc")
+                    .data(pie( Illiterate))
+                    .enter()
+                    .append("g")
+                    .attr("class", "arc");
+
+
+      g .append("path")
+        .attr("d", arc)
+        .style("fill", function(d) { return color(d.data.label); })
+        .style("stroke-width","2px")
+        .transition()
+        .duration(800)
+        .attrTween('d', tweenPie);
+
+
+      g .append("text")
+        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", ".35em")
+        .style("text-anchor", "middle")
+        .style("opacity","0")
+        .text(function(d) { return d.data["label"]; })
+        .append("tspan")
+        .attr("x",0)
+        .attr("dy",20)
+        .text(function(d) { return d.data["Value"]+"%"; })
+
+      g .select("text")
+        .transition()
+        .delay(500)
+        .duration(1000)
+        .style("opacity","1")
+
+});
+
+</script>
+  </body>
+</html>

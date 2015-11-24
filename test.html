@@ -1,27 +1,175 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-    <script src="http://d3js.org/d3.v3.min.js">  </script>
-  </head>
-  <body>
-    <div>
-    </div>
-    <script>
-        var svg=d3.select("div")
-                  .append("svg")
-                  .attr("width",500)
-                  .attr("height",500);
+<meta charset="utf-8">
+<style>
 
-        var rect=svg.append("g").attr("transform","translate(50,50)")
-                    .append("rect")
-                    .attr("width",100)
-                    .attr("height",100)
-                    .attr("x",100);
+body {
+  font: 20px sans-serif;
+}
+
+.arc path {
+  stroke: #fff;
+}
+
+</style>
+<body>
+  <h2 style="text-align:center;">Total Population Distribution<h2>
+<script src="./d3.v3.min.js"></script>
+<script>
+
+var width = 900,
+    height = 550,
+    radius = (height-100) / 2;
+
+var color = d3.scale.ordinal()
+    .range(["#98abc5", "#8a89a6"]);
+
+var arc = d3.svg.arc()
+    .outerRadius(radius - 10)
+    .innerRadius(0);
+
+var pie = d3.layout.pie()
+    .sort(null)
+    .value(function(d) { return d["Value"]; });
+
+var maleFemale=[];
+    maleFemale[0]={};
+    maleFemale[0]["label"]="Total Male Population";
+    maleFemale[0]["Value"]=0;
+    maleFemale[1]={};
+    maleFemale[1]["label"]="Total Female Population";
+    maleFemale[1]["Value"]=0;
+
+var literateIlliterate=[];
+    literateIlliterate[0]={};
+    literateIlliterate[0]["label"]="Literate Population";
+    literateIlliterate[0]["Value"]=0;
+    literateIlliterate[1]={};
+    literateIlliterate[1]["label"]="Illiterate Population";
+    literateIlliterate[1]["Value"]=0;
 
 
-    </script>
-    hi
+var svg = d3.select("body")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("display","block")
+            .style("margin","auto")
+            .append("g")
+            .attr("transform", "translate(" + width / 4 + "," + (height) / 2 + ")");
+
+
+function tweenPie(finish) {
+  var start = {
+          startAngle: 0,
+          endAngle: 0
+      };
+  var i = d3.interpolate(start, finish);
+  return function(d) { return arc(i(d)); };
+}
+
+
+
+d3.json("object.json", function(error, data) {
+
+  data.forEach(function(d) {
+    maleFemale[0]["Value"]  = maleFemale[0]["Value"] +  +d.literateMale+ +d.illiterateMale;
+    maleFemale[1]["Value"]  = maleFemale[1]["Value"] +  +d.literateFemale+ +d.illiterateFemale;
+
+    literateIlliterate[0]["Value"]  = literateIlliterate[0]["Value"] +  +d.literateMale+ +d.literateFemale;
+    literateIlliterate[1]["Value"]  = literateIlliterate[1]["Value"] +  +d.illiterateFemale+ +d.illiterateMale;
+    
+  });
+  console.log(literateIlliterate[1]["Value"])
+
+  var total=d3.sum(maleFemale,function(d){
+                                          return d["Value"];
+                                        });
+      maleFemale[0]["Value"]  = (maleFemale[0]["Value"] * 100 / total).toFixed(2);
+      maleFemale[1]["Value"]  = (maleFemale[1]["Value"] * 100 / total).toFixed(2);
+
+      total=d3.sum(literateIlliterate,function(d){
+                                          return d["Value"];
+                                        });
+      literateIlliterate[0]["Value"]  = ( literateIlliterate[0]["Value"]  * 100 / total).toFixed(2);
+      literateIlliterate[1]["Value"]  = ( literateIlliterate[1]["Value"]  * 100 / total).toFixed(2);
+
+  var g = svg .selectAll(".arc")
+              .data(pie(maleFemale))
+              .enter().append("g")
+              .attr("class", "arc");
+
+
+
+      g .append("path")
+        .attr("d", arc)
+        .style("fill", function(d) { return color(d.data.label); })
+        .style("stroke-width","2px")
+        .transition()
+        .duration(800)
+        .attrTween('d', tweenPie)
+        .each("end",function(){});
+
+      g .append("text")
+        .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+        .attr("dy", ".35em")
+        .style("text-anchor", "middle")
+        .style("opacity","0")
+        .text(function(d) { return d.data["label"]; })
+        .append("tspan")
+        .attr("x",0)
+        .attr("dy",20)
+        .text(function(d) { return d.data["Value"]+"%"; })
+
+      g .select("text")
+        .transition()
+        .delay(500)
+        .duration(1000)
+        .style("opacity","1")
+
+
+
+      //---------------------------------------Part 2---------------------------//
+
+
+    var svg2= d3.select("svg")
+                .append("g")
+                .attr("transform", "translate(" + (width/2 + width / 4) + "," + (height) / 2 + ")");
+
+  var g = svg2.selectAll(".arc")
+              .data(pie(literateIlliterate))
+              .enter()
+              .append("g")
+              .attr("class", "arc");
+
+
+    g .append("path")
+      .attr("d", arc)
+      .style("fill", function(d) { return color(d.data.label); })
+      .style("stroke-width","2px")
+      .transition()
+      .duration(800)
+      .attrTween('d', tweenPie);
+
+
+    g .append("text")
+      .attr("transform", function(d) { return "translate(" + arc.centroid(d) + ")"; })
+      .attr("dy", ".35em")
+      .style("text-anchor", "middle")
+      .style("opacity","0")
+      .text(function(d) { return d.data["label"]; })
+      .append("tspan")
+      .attr("x",0)
+      .attr("dy",20)
+      .text(function(d) { return d.data["Value"]+"%"; })
+
+    g .select("text")
+      .transition()
+      .delay(500)
+      .duration(1000)
+      .style("opacity","1")
+
+});
+
+</script>
   </body>
 </html>
